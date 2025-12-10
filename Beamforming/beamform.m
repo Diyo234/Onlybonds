@@ -45,7 +45,7 @@ vsource = [0, -10000]; % x0=steering_angle=0, z0 is large and negative
 % [bfSIG, M] = ezdas(iq, X(:), Z(:), vsource, param);
 
 % Using Rf signal:
-[bfSIG, M] = ezdas(rf, X(:), Z(:), vsource, param);
+[bfSIG, M] = ezdas(double(rf), X(:), Z(:), vsource, param);
 
 % Reshape to image dimensions
 bfImage = reshape(bfSIG, size(X));
@@ -56,7 +56,7 @@ bfImage = reshape(bfSIG, size(X));
 % envelope = abs((bfImage));
 
 % Using Rf signal:
-envelope = abs(hilbert(bfImage));
+envelope = abs(hilbert((bfImage)));
 %% Display the result
 figure('Position', [100, 100, 800, 600]);
 
