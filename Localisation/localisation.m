@@ -1,4 +1,5 @@
-function [localisedBubbleCoords, boxes] = localisationFunc (frame, param, psf)
+function [localisedBubbleCoords, boxes] = localisation (frame, localisationParam)
+
 %% This function is partially based on:
 % EID22 | Imperial College 
 % found in https://ieeexplore.ieee.org/document/10497610
@@ -25,13 +26,13 @@ function [localisedBubbleCoords, boxes] = localisationFunc (frame, param, psf)
 
     %% Detection
     
-    threshold = prctile(frame(:), param.threshold);
+    threshold = prctile(frame(:), localisationParam.threshold);
     bw = frame > threshold; %% Binarise the image based on the threshold
     cc = bwconncomp(bw, 8); %% Generate connected components
 
     %% Localisation and removal of overlapping MBs
-    psfWidth = psf.width;
-    psfHeight = psf.height; % These values can better inform min/max values below
+    psfWidth = localisationParam.psfWidth;
+    psfHeight = localisationParam.psfWidth; % These values can better inform min/max values below
     maxWidth = 60; % Maximum widths for valid CCs
     maxHeight = 30; % Maximum heights for valid CCs
     minWidth = 20;
@@ -126,55 +127,59 @@ function [stats1, stats2] = checkOverlapping (frame, large, threshold);
     end
 end
 
-% simvid = VideoReader('simulation.mp4');
-% numFrames = simvid.NumFrames;
-param = struct(); 
-param.threshold = 99.5;
-psf = struct();
-psf.height = 33;
-psf.width = 183;
-
-%% Reconstruct the video
+% bubbleVid = VideoReader('simulation.mp4');
+% numFrames = bubbleVid.NumFrames;
+% param = struct(); 
+% param.threshold = 99.5;
+% psf = struct();
+% psf.height = 33;
+% psf.width = 183;
+%%
+% Reconstruct the video
 % localisedvid = VideoWriter("localised");
 % localisedvid.FrameRate = simvid.FrameRate;
 % open(localisedvid);
-% figure;
+% fig = figure('Color','k');
+% ax  = axes(fig);
+% ax.Position = [0 0 1 1]; 
 % localisedBubbleCoords = cell(numFrames, 1);
 % 
-% for n = 1:numFrames;
+% for n = 625:875
 %     frame = read(simvid, n);
 %     [localisedBubbleCoords{n}, boxes] = localisationFunc(frame, param, psf);
-%     imshow(frame); hold on
-%     plot(localisedBubbleCoords{n}(:,1), localisedBubbleCoords{n}(:,2), 'r+', 'MarkerSize',6)
-%     hold off
-%     F = getframe(gcf);
+% 
+%     imshow(frame, 'Parent', ax); hold(ax, 'on');
+%     plot(ax, localisedBubbleCoords{n}(:,1), localisedBubbleCoords{n}(:,2), ...
+%         'b*');
+%     hold(ax, 'off');
+% 
+%     F = getframe(ax);          % capture AXES only, not figure
 %     writeVideo(localisedvid, F);
 % end
 % 
+% 
 % close(localisedvid);
-% close(gcf);
-
-%% Show 1 frame
-% The green boxes show CCs
-frame = read(simvid, 1105);
-[localisedBubbleCoords, boxes] = localisationFunc(frame, param, psf);
-figure;
-imshow(frame);
-hold on
-plot(localisedBubbleCoords(:,1),localisedBubbleCoords(:,2),'b*');
-for i = 1:size(boxes, 1)
-    rectangle('Position', boxes(i, :), 'EdgeColor', 'g', 'LineWidth', 1);
-end
-hold off
-title('Frame 1');
-
+%%
+% %% Show 1 frame
+% % The green boxes show CCs
+% frame = read(simvid, 500);
+% [localisedBubbleCoords, boxes] = localisationFunc(frame, param, psf);
+% figure;
+% imshow(frame);
+% hold on
+% plot(localisedBubbleCoords(:,1),localisedBubbleCoords(:,2),'b*');
+% for i = 1:size(boxes, 1)
+%     rectangle('Position', boxes(i, :), 'EdgeColor', 'g', 'LineWidth', 1);
+% end
+% hold off
+% title('Frame 1');
+% 
 %% Generate localised coordinates
 % numFrames = 20; % Reduced size to try tracking
-localisedBubbleCoords = cell(numFrames, 1);
-box = boxes (11, :);
-for n = 1:numFrames;
-    frame = read(simvid, n);
-    [localisedBubbleCoords{n}, boxes] = localisationFunc(frame, param, psf);
-end
+% localisedBubbleCoords = cell(numFrames, 1);
+% for n = 1:numFrames;
+%     frame = read(bubbleVid, n);
+%     [localisedBubbleCoords{n}, boxes] = localisation(frame, param, psf);
+% end
 
 % cross correlation
