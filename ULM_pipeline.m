@@ -2,11 +2,12 @@
 
 function [beamformedImage, SR_img, BW] = ULMPipeline (rawSig, bubbleVid, beamformParam, localisationParam)
     beamformedImage = beamform(rawSig, beamformParam, 'SignalType', beamformParam.signal);
+    correctedFrames = motionCorrection(bubbleVid);
     % numFrames = bubbleVid.NumFrames; 
     numFrames = 10;
     localisedBubbleCoords = cell(numFrames, 1);
     for n = 1:numFrames;
-        frame = read(bubbleVid, n);
+        frame = correctedFrames(:, :, :, n);
         [localisedBubbleCoords{n}, boxes] = localisation(frame, localisationParam);
     end
     [tracks, adjacency_tracks, A] = simpletracker(localisedBubbleCoords, ...
@@ -21,7 +22,9 @@ rootDir = fileparts(mfilename('fullpath'));
 addpath(fullfile(rootDir, 'Beamforming'));
 addpath(fullfile(rootDir, 'Localisation'));
 addpath(fullfile(rootDir, 'Mapping'));
+addpath(fullfile(rootDir, 'Motion Correction'));
 addpath(fullfile(rootDir, 'Tracking'));
+
 
 %% Beamforming parameters: Transducer parameters   
 beamformParam.type = 'das';
