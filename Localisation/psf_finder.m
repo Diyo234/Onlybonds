@@ -54,7 +54,6 @@ function [localisedBubbleCoords, boxes] = localisationFunc (frame, param, psfTem
 
     %% Detection
     
-    
     localisedBubbleCoords = [];
     c = normxcorr2(psfTemplate, frame);
     
