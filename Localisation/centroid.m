@@ -44,21 +44,21 @@ for n = 1: numFrames;
 
     centroidCell{n} = cat(1,stats.WeightedCentroid);
 
-    imshow(frame); hold on
-    plot(centroidCell{n}(:,1), centroidCell{n}(:,2), 'r+', 'MarkerSize',6)
-    hold off
+    % imshow(frame); hold on
+    % plot(centroidCell{n}(:,1), centroidCell{n}(:,2), 'r+', 'MarkerSize',6)
+    % hold off
 
     % F = getframe(gca);
     % writeVideo(localisedvid, F);
 end
 %%
-centroids = centroidCell{1};
-figure;
-imshow(frame1);
-hold on
-plot(centroids(:,1),centroids(:,2),'b*');
-hold off
-title('Frame 1');
+% centroids = centroidCell{1};
+% figure;
+% imshow(frame1);
+% hold on
+% plot(centroids(:,1),centroids(:,2),'b*');
+% hold off
+% title('Frame 1');
 
 % close(localisedvid);
 % close(gcf);
