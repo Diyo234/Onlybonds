@@ -1,4 +1,4 @@
-function [localisedBubbleCoords] = crossCorrelationLocal (frame, localisationParam)
+function [localisedBubbleCoords] = crossCorrelation(frame, localisationParam)
     frame = im2gray(frame);
     viableY = 800; % Hard-coded, where the bubbles start on the 
     % frame. Ideally, we should only be passing the relevant part of the 
@@ -35,18 +35,14 @@ function [localisedBubbleCoords] = crossCorrelationLocal (frame, localisationPar
     
 end
 
-bubbleVid = VideoReader('simulation.mp4');
-numFrames = bubbleVid.NumFrames;
-frame = read(bubbleVid, 10);
-localisationParam = struct();
-localisationParam.psfTemplates = {psfTemplate1, psfTemplate2, psfTemplate3};
-localisationParam.psfTemplate1 = psfTemplate1;
-localisationParam.psfTemplate2 = psfTemplate2;
-localisationParam.psfTemplate3 = psfTemplate3;
-
+%% Uncomment to run code locally
+% bubbleVid = VideoReader('simulation.mp4');
+% numFrames = bubbleVid.NumFrames;
+% frame = read(bubbleVid, 10);
+% localisationParam.psfTemplates = {psfTemplate1, psfTemplate2, psfTemplate3};
 % [localisedBubbleCoords] = crossCorrelationLocal(frame, localisationParam);
-% 
-% 
+
+%% View singular frame
 % figure;
 % imshow(frame);
 % hold on
@@ -54,28 +50,27 @@ localisationParam.psfTemplate3 = psfTemplate3;
 % hold off
 % title('Frame 1');
 
-%%
-% Reconstruct the video
-localisedvid = VideoWriter("localised");
-localisedvid.FrameRate = bubbleVid.FrameRate;
-open(localisedvid);
-fig = figure('Color','k');
-ax  = axes(fig);
-ax.Position = [0 0 1 1]; 
-localisedBubbleCoords = cell(numFrames, 1);
-
-for n = 1:numFrames
-    frame = read(bubbleVid, n);
-    [localisedBubbleCoords{n}] = crossCorrelationLocal(frame, localisationParam);
-
-    imshow(frame, 'Parent', ax); hold(ax, 'on');
-    plot(ax, localisedBubbleCoords{n}(:,1), localisedBubbleCoords{n}(:,2), ...
-        'b*');
-    hold(ax, 'off');
-
-    F = getframe(ax);          % capture AXES only, not figure
-    writeVideo(localisedvid, F);
-end
-
-
-close(localisedvid);
+%% Reconstruct video
+% localisedvid = VideoWriter("localised");
+% localisedvid.FrameRate = bubbleVid.FrameRate;
+% open(localisedvid);
+% fig = figure('Color','k');
+% ax  = axes(fig);
+% ax.Position = [0 0 1 1]; 
+% localisedBubbleCoords = cell(numFrames, 1);
+% 
+% for n = 1:numFrames
+%     frame = read(bubbleVid, n);
+%     [localisedBubbleCoords{n}] = crossCorrelationLocal(frame, localisationParam);
+% 
+%     imshow(frame, 'Parent', ax); hold(ax, 'on');
+%     plot(ax, localisedBubbleCoords{n}(:,1), localisedBubbleCoords{n}(:,2), ...
+%         'b*');
+%     hold(ax, 'off');
+% 
+%     F = getframe(ax);          % capture AXES only, not figure
+%     writeVideo(localisedvid, F);
+% end
+% 
+% 
+% close(localisedvid);

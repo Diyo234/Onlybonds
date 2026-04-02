@@ -7,9 +7,15 @@ pixelSize = 3.3879*1e-5;
 lambda/4 > pixelSize; % This returns true, so discretation is enough
 
 
-
-%% Code for producing video with localied MBs
 simvid = VideoReader('simulation.mp4');
+
+%% Locate 3 different microbubbles, 1 for each region in the frame. Run 
+% the code using an appropriate frame. Then, use 
+% the centre coordinates (from centroids) and approximate width and height 
+% of the bubbles. Continue to re-run code until all 3 bubbles are 
+% approximated. These properties are used to form a psfTemplate for each 
+% region. Use the psfTemplates to run crossCorrelation.m
+
 
 
 frame1 = read(simvid, 1);
@@ -44,7 +50,7 @@ psfWidth3 = 110;
 psfHeight3 = 24;
 
 title('Frame 1');
-%% Find FWHM based on patch size
+%% Find the template based on psf dimensions
 function [psfTemplate, box] = findPsfTemplate (frame, psfWidth, psfHeight, bubbleX, bubbleY)
     patchWidth = psfWidth*1.5;
     patchHeight = psfHeight*1.5;

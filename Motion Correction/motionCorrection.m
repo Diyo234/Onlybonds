@@ -81,8 +81,8 @@ function [correctedFrames] = motionCorrection(frames)
     tempCorrected = imtranslate(tempFrame, shifts(1, :), 'linear', 'OutputView', 'same');
     tempFinal = imcrop(tempCorrected, rect);
     [finalH, finalW, channels] = size(tempFinal);
-    correctedFrames = zeros(finalH, finalW, channels, totalFrames, 'uint8');
-
+    % correctedFrames = zeros(finalH, finalW, channels, totalFrames, 'uint8');
+    correctedFrames = zeros(finalH, finalW, totalFrames, 'uint8');
     fprintf('Applying stabilization...\n');
     
     for i = 1:totalFrames
@@ -93,7 +93,7 @@ function [correctedFrames] = motionCorrection(frames)
         % Sub-pixel precision is handled by imtranslate
         corrected = imtranslate(frame, shifts(i, :), 'linear', 'OutputView', 'same');
         finalFrame = imcrop(corrected, rect);
-        correctedFrames(:,:,:,i) = finalFrame;
+        correctedFrames(:,:,i) = finalFrame;
         % writeVideo(vOut, finalFrame);
     end
     
