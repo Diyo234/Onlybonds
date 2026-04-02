@@ -1,28 +1,56 @@
 %%
 
-function [beamformedImage, SR_img, BW] = ULMPipeline (rawSig, bubbleVid, beamformParam, localisationParam, beamformed_data)
-    numFrames = 21;
-    beamformedImage = beamform(rawSig, beamformParam, 'SignalType', beamformParam.signal);
-    [stack_moving, db_moving] = run_moving_filter(beamformed_data(:,:,1:numFrames));
-    filteredFrames = im2uint8(mat2gray(db_moving, [-40 0]));
-    % correctedFrames = motionCorrection(bubbleVid);
-    correctedFrames = motionCorrection(filteredFrames);
-    % numFrames = size(correctedFrames, 4);
-    localisedBubbleCoords = cell(numFrames, 1);
-    for n = 1:numFrames;
-        frame = correctedFrames(:, :, :, n);
+function [beamformedImage, SR_img, BW] = ULMPipeline (rawSig, bubbleVid, ...
+    beamformParam, svdParam, motionCorrectionParam, localisationParam, ...
+    trackingParam, beamformed_data)
+    % numFrames = 21;
+    numFrames = bubbleVid.NumFrames;
+    firstFrame = readFrame (bubbleVid);
+    firstFrame = im2gray(firstFrame);
+
+    [rows, cols] = size(firstFrame);
+
+    frames = zeros(rows, cols, numFrames, 'like', firstFrame);
+    
+    for n = 1:numFrames
+        frame = read(bubbleVid, n);
         frame = im2gray(frame);
-        [localisedBubbleCoords{n}, boxes] = localisation(frame, localisationParam);
+        frames(:, :, n) = frame;
     end
-    % [tracks, adjacency_tracks, A] = simpletracker(localisedBubbleCoords, ...
-    % 'Method', 'Hungarian');
-    [tracks, adjacency_tracks, A] = kalmanHungarianTracker(localisedBubbleCoords, ...
-        'MaxGapClosing', 3, ...
-        'MaxLinkingDistance', 30, ...
-        'ProcessNoise', 10, ...
-        'MeasurementNoise', 4, ...
-        'InitialVelocityVariance', 100, ...
-        'MinTrackLength', 2);
+    if strcmp(beamformParam.method, 'DAS')
+        beamformedImage = beamform(rawSig, beamformParam, 'SignalType', beamformParam.signal);
+    else
+        beamformedImage = '';
+    end
+    if strcmp(svdParam.method, 'SVD')
+        [stack_moving, db_moving] = run_moving_filter(beamformed_data(:,:,1:numFrames));
+        frames = im2uint8(mat2gray(db_moving, [-40 0]));
+    end
+    % correctedFrames = motionCorrection(bubbleVid);
+    if strcmp(motionCorrectionParam.method, 'Motion Correction')
+        frames = motionCorrection(frames);
+        % numFrames = size(correctedFrames, 4);
+    end
+    if strcmp(localisationParam.method, 'Cross Correlation')
+        localisedBubbleCoords = cell(numFrames, 1);
+        for n = 1:numFrames;
+            frame = frames(:, :, n);
+            frame = im2gray(frame);
+            [localisedBubbleCoords{n}] = crossCorrelation(frame, localisationParam);
+        end
+    end
+    if strcmp(trackingParam.method, 'Hungarian')
+        [tracks, adjacency_tracks, A] = simpletracker(localisedBubbleCoords, ...
+        'Method', 'Hungarian');
+    elseif strcmp(trackingParam.method, 'Kalman and Hungarian')
+        [tracks, adjacency_tracks, A] = kalmanHungarianTracker(localisedBubbleCoords, ...
+            'MaxGapClosing', 3, ...
+            'MaxLinkingDistance', 30, ...
+            'ProcessNoise', 10, ...
+            'MeasurementNoise', 4, ...
+            'InitialVelocityVariance', 100, ...
+            'MinTrackLength', 2);
+    end
     [SR_img, BW] = mapping(frame, localisedBubbleCoords, tracks, adjacency_tracks, A);
 end
 % function [beamformedImage, SR_img, BW] = ULMPipeline (rawSig, bubbleVid, beamformParam, localisationParam)
@@ -86,7 +114,8 @@ addpath(fullfile(rootDir, 'Tracking'));
 
 
 %% Beamforming parameters: Transducer parameters   
-beamformParam.type = 'das';
+% beamformParam.method = 'DAS';
+beamformParam.method = 'None';
 beamformParam.signal = 'RF';
 beamformParam.fc = 2.0*1e6;           % transmission frequency
 beamformParam.fs = 14.205e6;          % sampling rate (Hz)
@@ -112,17 +141,36 @@ beamformParam.fnumber = 0.5786; % for simplification, users should enter their f
 beamformParam.pixelmapX = -0.06:(2.7*1e-4):0.06; 
 beamformParam.pixelmapZ = 0:(3.4*1e-4):0.08;     
 
-%% Localisation parameters 
-localisationParam.threshold = 99.5;
-localisationParam.psfHeight = 33;
-localisationParam.psfWidth = 183;
-%%
+%% SVD: parameters
+% svdParam.method = 'SVD';
+svdParam.method = 'None';
 
+
+%% SVD: beamformed_data
+load("Simulation Data\moving_background_with_moving_scatters.mat", "beamformed_data");
+
+%% Motion correction parameters
+% motionCorrectionParam.method = 'Motion Correction';
+motionCorrectionParam.method = 'None';
+
+%% Localisation parameters 
+
+localisationParam.method = 'Cross Correlation';
+localisationParam.psfTemplates = {psfTemplate1, psfTemplate2, psfTemplate3};
+%% Tracking parameters
+
+trackingParam.method = 'Hungarian';
+% trackingParam.method = 'Kalman and Hungarian';
+% trackingParam.method = 'None';
+
+%%
 load("RcvData.mat");
 rawSig = RcvData;
-% bubbleVid = VideoReader('simulation.mp4');
-bubbleVid = VideoReader('moving_background.mp4');
-[bfImageDB, SR_img, BW] = ULMPipeline (rawSig, bubbleVid, beamformParam, localisationParam, beamformed_data);
+bubbleVid = VideoReader('simulation.mp4');
+% bubbleVid = VideoReader('moving_background.mp4');
+[bfImageDB, SR_img, BW] = ULMPipeline (rawSig, bubbleVid, beamformParam, ...
+    svdParam, motionCorrectionParam, localisationParam, trackingParam, ...
+    beamformed_data);
 
 % %% Display the result
 % figure('Position', [100, 100, 800, 600]);
