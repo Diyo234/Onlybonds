@@ -1,6 +1,6 @@
 function [beamformedImage, SR_img, BW, tracks] = ULMPipeline (rawSig, bubbleVid, ...
     beamformParam, svdParam, motionCorrectionParam, localisationParam, ...
-    trackingParam, velocityParam, beamformed_data)
+    trackingParam, velocityParam)
     numFrames = 5;
     % numFrames = bubbleVid.NumFrames;
     firstFrame = readFrame (bubbleVid);
@@ -21,7 +21,7 @@ function [beamformedImage, SR_img, BW, tracks] = ULMPipeline (rawSig, bubbleVid,
         beamformedImage = '';
     end
     if strcmp(svdParam.method, 'SVD')
-        [stack_moving, db_moving] = run_moving_filter(beamformed_data(:,:,1:numFrames));
+        % [stack_moving, db_moving] = run_moving_filter(beamformed_data(:,:,1:numFrames));
         frames = im2uint8(mat2gray(db_moving, [-40 0]));
     end
     % correctedFrames = motionCorrection(bubbleVid);
@@ -149,8 +149,7 @@ beamformParam.pixelmapZ = 0:(3.4*1e-4):0.08;
 svdParam.method = 'None';
 
 
-%% SVD: beamformed_data
-load("Simulation Data\moving_background_with_moving_scatters.mat", "beamformed_data");
+
 
 %% Motion correction parameters
 % motionCorrectionParam.method = 'Motion Correction';
@@ -178,7 +177,7 @@ bubbleVid = VideoReader('simulation.mp4');
 % bubbleVid = VideoReader('moving_background.mp4');
 [bfImageDB, SR_img, BW, tracks] = ULMPipeline (rawSig, bubbleVid, beamformParam, ...
     svdParam, motionCorrectionParam, localisationParam, trackingParam, ...
-    velocityParam, beamformed_data);
+    velocityParam);
 
 % %% Display the result
 % figure('Position', [100, 100, 800, 600]);
