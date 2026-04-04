@@ -394,7 +394,7 @@ function [target_indices, target_distances, unassigned_targets, total_cost] = ..
 
     if exist('munkres', 'file') ~= 2
         error(['munkres.m not found. The Hungarian assignment in this tracker ' ...
-               'requires the same munkres implementation used by the original simple tracker.']);
+               'requires same munkres implementation used by the original simple tracker.']);
     end
 
     [target_indices, total_cost] = munkres(D);
