@@ -1,6 +1,6 @@
 function [localisedBubbleCoords] = crossCorrelation(frame, localisationParam)
-    frame = im2gray(frame);
-    viableY = 800; % Hard-coded, where the bubbles start on the 
+    % frame = im2gray(frame);
+    viableY = 10; % Hard-coded, where the bubbles start on the 
     % frame. Ideally, we should only be passing the relevant part of the 
     % frame into the function.
 
