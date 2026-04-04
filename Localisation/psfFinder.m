@@ -6,10 +6,6 @@ lambda = c /fc; % λ = c / f
 pixelSize = 3.3879*1e-5;
 lambda/4 > pixelSize; % This returns true, so discretation is enough
 
-
-% simvid = VideoReader('simulation.mp4');
-simvid = VideoReader('simulation.mp4');
-
 %% Locate 3 different microbubbles, 1 for each region in the frame. Run 
 % the code using an appropriate frame. Then, use 
 % the centre coordinates (from centroids) and approximate width and height 
@@ -19,14 +15,14 @@ simvid = VideoReader('simulation.mp4');
 
 
 
-frame1 = read(simvid, 1);
-frame30 = read(simvid, 30);
+% Simulation.mp4 microbubbles
+simvid = VideoReader('simulation.mp4');
+refFrame1 = read(simvid, 1);
+refFrame2 = read(simvid, 30);
 figure;
-imshow(frame1);
+imshow(refFrame1);
 impixelinfo;
 hold on
-
-%% Simulation.mp4 microbubbles
 bubble1 = [508,1068]; % Frame 1
 plot(bubble1(1), bubble1(2), 'b*');
 bubble2 = [435,1489]; % Frame 30
@@ -48,11 +44,44 @@ psfWidth2 = 170;
 psfHeight2 = 28;
 % Bubble 3
 plot ([bubble3(1) - 70 ,bubble3(1) + 40], [bubble3(2), bubble3(2)], 'r-'); % PSF width = 110
-% plot ([bubble2(1), bubble2(1)], [ bubble2(2) + 12,bubble2(2) - 12], 'g-'); % height = 24
+% plot ([bubble3(1), bubble3(1)], [ bubble3(2) + 12,bubble3(2) - 12], 'g-'); % height = 24
 psfWidth3 = 110;
 psfHeight3 = 24;
 
-%% Find the template based on psf dimensions
+%% Clutter filter video
+% simvid = VideoReader('static_background_clutter_filterd.mp4');
+% refFrame1 = read(simvid, 70);
+% refFrame2 = read(simvid, 140);
+% figure;
+% imshow(refFrame1);
+% impixelinfo;
+% hold on
+% 
+% % Bubble 1
+% bubble1 = [113,44]; % Frame 70
+% plot(bubble1(1), bubble1(2), 'b*');
+% plot ([bubble1(1) - 35 ,bubble1(1) + 35], [bubble1(2), bubble1(2)], 'r-'); % PSF width = 70
+% plot ([bubble1(1), bubble1(1)], [ bubble1(2) + 6,bubble1(2) - 6], 'g-'); % height = 12
+% psfWidth1 = 70;
+% psfHeight1 = 12;
+% 
+% % Bubble 2
+% bubble2 = [94,151]; % Frame 70
+% plot(bubble2(1), bubble2(2), 'b*');
+% % Bubble 2, frame 140
+% plot ([bubble2(1) - 34 ,bubble2(1) + 34], [bubble2(2), bubble2(2)], 'r-'); % PSF width = 64
+% plot ([bubble2(1), bubble2(1)], [ bubble2(2) + 6,bubble2(2) - 6], 'g-'); % height = 12
+% psfWidth2 = 64;
+% psfHeight2 = 12;
+% 
+% % Bubble 3
+% bubble3 = [82,244]; % Frame 70
+% plot(bubble3(1), bubble3(2), 'b*');
+% plot ([bubble3(1) - 34 ,bubble3(1) + 34], [bubble3(2), bubble3(2)], 'r-'); % PSF width = 68
+% plot ([bubble3(1), bubble3(1)], [ bubble3(2) + 6,bubble3(2) - 5], 'g-'); % height = 11
+% psfWidth3 = 68;
+% psfHeight3 = 11;
+%% Find the template based on psf dimensions, comment out this section to locate centroids
 function [psfTemplate, box] = findPsfTemplate (frame, psfWidth, psfHeight, bubbleX, bubbleY)
     patchWidth = psfWidth*1.5;
     patchHeight = psfHeight*1.5;
@@ -69,22 +98,23 @@ function [psfTemplate, box] = findPsfTemplate (frame, psfWidth, psfHeight, bubbl
     % y = round(box(2));
     % w = round(box(3));
     % h = round(box(4));
-    
+    y
+    h
     patch = frame(y:y+h-1, x:x+w-1);
     xSum = sum(patch, 1);  % Sum along rows (vertical sum)
     zSum = sum(patch, 2);    % Sum along columns (horizontal sum)
-    
+
     zSum = zSum / max(zSum);
     xSum = xSum / max(xSum);
-    
+
     zHalf = find(zSum > 0.5);
     xHalf = find(xSum > 0.5);
-    
+
     zFwhm = zHalf(end) - zHalf(1) + 1;
     xFwhm = xHalf(end) - xHalf(1) + 1;
     sigmaZ = zFwhm / (2 * sqrt(2 * log(2))); % The relationship between FWHM and standard deviation
     sigmaX = xFwhm / (2 * sqrt(2 * log(2)));
-    
+
     x1 = -w/2:1:w/2;
     x2 = -h/2:1:h/2;
     [X1,X2] = meshgrid(x1,x2);
@@ -97,9 +127,9 @@ function [psfTemplate, box] = findPsfTemplate (frame, psfWidth, psfHeight, bubbl
     normalPsf = normalPsf / max(normalPsf);
     psfTemplate = reshape(normalPsf,length(x2),length(x1));
 end
-[psfTemplate1, box1] = findPsfTemplate (frame1, psfWidth1, psfHeight1, bubble1(1), bubble1(2));
-[psfTemplate2, box2] = findPsfTemplate (frame30, psfWidth2, psfHeight2, bubble2(1), bubble2(2));
-[psfTemplate3, box3] = findPsfTemplate (frame1, psfWidth3, psfHeight3, bubble3(1), bubble3(2));
+[psfTemplate1, box1] = findPsfTemplate (refFrame1, psfWidth1, psfHeight1, bubble1(1), bubble1(2));
+[psfTemplate2, box2] = findPsfTemplate (refFrame2, psfWidth2, psfHeight2, bubble2(1), bubble2(2));
+[psfTemplate3, box3] = findPsfTemplate (refFrame1, psfWidth3, psfHeight3, bubble3(1), bubble3(2));
 
 
 
@@ -109,15 +139,15 @@ rectangle('Position', box3, 'EdgeColor', 'g', 'LineWidth', 1);
 hold off
 
 %%
-    frame1 = im2gray(frame1);
-    threshold = prctile(frame1(:), 99.5);  % top 0.5% intensities, arbitrarily selected to include starburst
-    regionalMax = imregionalmax(frame1);
+    refFrame1 = im2gray(refFrame1);
+    threshold = prctile(refFrame1(:), 99);  % top 1% intensities, arbitrarily selected to include starburst
+    regionalMax = imregionalmax(refFrame1);
     % bw = frame > threshold;
-    bw = regionalMax & (frame1 > threshold);
+    bw = regionalMax & (refFrame1 > threshold);
     % [xPeaks, yPeaks] = find(bw)
     
     cc = bwconncomp(bw, 8);
-    centroids = regionprops(cc, frame1, 'WeightedCentroid');
+    centroids = regionprops(cc, refFrame1, 'WeightedCentroid');
 
 
 
