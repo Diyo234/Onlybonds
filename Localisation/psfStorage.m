@@ -147,3 +147,50 @@ psfWidth3 = 60;
 psfHeight3 = 18;
 plot ([bubble1(1) - psfWidth3/2 ,bubble1(1) + psfWidth3/2], [bubble1(2), bubble1(2)], 'r-'); 
 plot ([bubble1(1), bubble1(1)], [ bubble1(2) + psfHeight3/2,bubble1(2) - psfHeight3/2], 'g-'); 
+
+%% CEUS Stable1
+% Ensure to add missing templates - only 1 is correctly defined
+simvid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
+numframes = simvid.NumFrames;
+refFrame1 = read(simvid, 1);
+refFrame1 = thresholding(refFrame1);
+refFrame1 = im2gray(refFrame1);
+refFrame2 = read(simvid, 270);
+refFrame2 = thresholding(refFrame2);
+refFrame3 = read(simvid, 390);
+refFrame3 = thresholding(refFrame3);
+
+displayFrame = refFrame1; % Pick the display frame
+figure;
+imshow(displayFrame);
+impixelinfo;
+zoom on;
+title ('Display PSF regions')
+hold on
+
+
+% Bubble 1
+bubble1 = [362,605]; % refFrame3
+plot(bubble1(1), bubble1(2), 'b*');
+psfWidth1 = 60;
+psfHeight1 = 18;
+plot ([bubble1(1) - psfWidth1/2 ,bubble1(1) + psfWidth1/2], [bubble1(2), bubble1(2)], 'r-'); 
+plot ([bubble1(1), bubble1(1)], [ bubble1(2) + psfHeight1/2,bubble1(2) - psfHeight1/2], 'g-');
+
+% Bubble 2
+bubble2 = [662,604]; % refFrame2
+plot(bubble2(1), bubble2(2), 'b*');
+psfWidth2 = 70;
+psfHeight2 = 24;
+plot ([bubble2(1) - psfWidth2/2 ,bubble2(1) + psfWidth2/2], [bubble2(2), bubble2(2)], 'r-');%
+plot ([bubble2(1), bubble2(1)], [ bubble2(2) + psfHeight2/2,bubble2(2) - psfHeight2/2], 'g-'); 
+
+
+
+% Bubble 3
+bubble3 = [1206,665]; % Frame 810, refFrame1
+plot(bubble3(1), bubble3(2), 'b*');
+psfWidth3 = 26;
+psfHeight3 = 14;
+plot ([bubble3(1) - psfWidth3/2 ,bubble3(1) + psfWidth3/2], [bubble3(2), bubble3(2)], 'r-'); % PSF width = 70
+plot ([bubble3(1), bubble3(1)], [ bubble3(2) + psfHeight3/2,bubble3(2) - psfHeight3/2], 'g-'); % height = 14

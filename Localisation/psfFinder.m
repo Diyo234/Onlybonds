@@ -6,31 +6,42 @@
 % region. Use the psfTemplates to run crossCorrelation.m
 
 % Frame thresholding
-function [frameOut] = thresholding (frameIn)
-    frameIn = im2gray(frameIn);
-    threshold = prctile(frameIn(:), 95);
-    frameOut = frameIn;
-    frameOut(frameIn <= threshold) = 0;
-end
+function frameOut = thresholding(frameIn, viableYTop, viableYBottom)
 
+    frameIn = im2gray(frameIn);
+
+    viableYTop = max(1, viableYTop);
+    viableYBottom = min(size(frameIn,1), viableYBottom);
+
+    roi = frameIn(viableYTop:viableYBottom, :);
+
+    threshold = prctile(roi(:), 80);
+
+    roi(roi <= threshold) = 0;
+
+    frameOut = zeros(size(frameIn), 'like', frameIn);
+    frameOut(viableYTop:viableYBottom, :) = roi;
+
+end
 %% PSF info block
 % Insert the respective block of code from psfStorage.m. The code block 
 % must include: simvid, refFrame1, refFrame2, at least 1 bubble, psf 
 % dimensions for each bubble
 
-
 %% CEUS Stable1
+% Ensure to add missing templates - only 1 is correctly defined
 simvid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
 numframes = simvid.NumFrames;
+viableYTop = 570; 
+viableYBottom = 850;
 refFrame1 = read(simvid, 1);
-refFrame1 = thresholding(refFrame1);
-refFrame1 = im2gray(refFrame1);
-refFrame2 = read(simvid, 270);
-refFrame2 = thresholding(refFrame2);
-refFrame3 = read(simvid, 390);
-refFrame3 = thresholding(refFrame3);
+refFrame1 = thresholding(refFrame1, viableYTop, viableYBottom);
+refFrame2 = read(simvid, 200);
+refFrame2 = thresholding(refFrame2, viableYTop, viableYBottom);
+refFrame3 = read(simvid, 20);
+refFrame3 = thresholding(refFrame3, viableYTop, viableYBottom);
 
-displayFrame = refFrame1; % Pick the display frame
+displayFrame = refFrame2; % Pick the display frame
 figure;
 imshow(displayFrame);
 impixelinfo;
@@ -58,7 +69,7 @@ plot ([bubble2(1), bubble2(1)], [ bubble2(2) + psfHeight2/2,bubble2(2) - psfHeig
 
 
 % Bubble 3
-bubble3 = [1206,665]; % Frame 810, refFrame1
+bubble3 = [1164,749]; % Frame 810, refFrame1
 plot(bubble3(1), bubble3(2), 'b*');
 psfWidth3 = 26;
 psfHeight3 = 14;
@@ -108,12 +119,12 @@ function [psfTemplate, box] = findPsfTemplate (frame, psfWidth, psfHeight, bubbl
 end
 
 % Run the function above, entering psf dimensions and bubble centroids
-[psfTemplate1, box1] = findPsfTemplate (refFrame1, psfWidth1, psfHeight1, bubble1(1), bubble1(2));
-[psfTemplate2, box2] = findPsfTemplate (refFrame2, psfWidth2, psfHeight2, bubble2(1), bubble2(2));
+% [psfTemplate1, box1] = findPsfTemplate (refFrame1, psfWidth1, psfHeight1, bubble1(1), bubble1(2));
+% [psfTemplate2, box2] = findPsfTemplate (refFrame2, psfWidth2, psfHeight2, bubble2(1), bubble2(2));
 [psfTemplate3, box3] = findPsfTemplate (refFrame1, psfWidth3, psfHeight3, bubble3(1), bubble3(2));
 
-rectangle('Position', box1, 'EdgeColor', 'g', 'LineWidth', 1);
-rectangle('Position', box2, 'EdgeColor', 'g', 'LineWidth', 1);
+% rectangle('Position', box1, 'EdgeColor', 'g', 'LineWidth', 1);
+% rectangle('Position', box2, 'EdgeColor', 'g', 'LineWidth', 1);
 rectangle('Position', box3, 'EdgeColor', 'g', 'LineWidth', 1);
 hold off
 

@@ -1,34 +1,40 @@
 function [localisedBubbleCoords] = crossCorrelation(frame, localisationParam)
 % function [localisedBubbleCoords] = crossCorrelationLocal(frame, localisationParam)
     [height, width, ~] = size(frame);
-    viableYTop = 570; 
-    viableYBottom = 850;
-    % viableYTop = 1; Simulation
-    % viableYBottom = height;
+    % viableYTop = 570; 
+    % viableYBottom = 850;
+    viableYTop = 1; % Simulation
+    viableYBottom = height;
     % Hard-coded, where the bubbles start on the 
     % frame. Ideally, we should only be passing the relevant part of the 
     % frame into the function. Minimum value is 1.
     
     %% Thresholding
-    threshold = prctile(frame(:), 95); % Adding thresholding to function
-    frame(frame <= threshold) = 0;
+
+    % roi = frame(viableYTop:viableYBottom, :);
+    % 
+    % threshold = prctile(roi(:), 80);
+    % 
+    % roi(roi <= threshold) = 0;
+    % 
+    % frame(viableYTop:viableYBottom, :) = roi;
     %% Detection
     
     psfTemplates = localisationParam.psfTemplates;
     
-    % edges = round(linspace(viableYTop, height, 4)); % simulation
-    edges = round(linspace(1, width, 4));
+    edges = round(linspace(viableYTop, height, 4)); % simulation
+    % edges = round(linspace(1, width, 4));
     allCoords = cell(numel(psfTemplates),1);
     roiYMin = viableYTop;
     roiYMax = viableYBottom;
     for n = 1:numel(psfTemplates)
-        % roiYMin = edges(n);
-        % roiYMax = edges(n+1); % Uncomment for simulation
-        % roi = frame(roiYMin:roiYMax, :);
+        roiYMin = edges(n);
+        roiYMax = edges(n+1); % Uncomment for simulation
+        roi = frame(roiYMin:roiYMax, :);
 
-        roiXMin = edges(n);
-        roiXMax = edges(n+1);
-        roi = frame(roiYMin: roiYMax, roiXMin:roiXMax);
+        % roiXMin = edges(n);
+        % roiXMax = edges(n+1);
+        % roi = frame(roiYMin: roiYMax, roiXMin:roiXMax);
    
 
         c = normxcorr2(psfTemplates{n}, roi);
@@ -44,8 +50,8 @@ function [localisedBubbleCoords] = crossCorrelation(frame, localisationParam)
         if ~isempty(stats)
             coords = cat(1, stats.WeightedCentroid);
             coords(:,2) = coords(:,2) + roiYMin - 1;
-            coords(:,1) = coords(:,1) + roiXMin - 1;
-            % coords(:,1) = coords(:,1);
+            % coords(:,1) = coords(:,1) + roiXMin - 1;
+            coords(:,1) = coords(:,1); % simulation
             allCoords{n} = coords;
         end
     end
@@ -58,9 +64,9 @@ end
 % bubbleVid = VideoReader('static_background_clutter_filterd.mp4');
 % bubbleVid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
 % 
-% numFrames = bubbleVid.NumFrames;
-% frame = read(bubbleVid, 390);
-% frame = im2gray(frame);
+% % numFrames = bubbleVid.NumFrames;
+% % frame = read(bubbleVid, 390);
+% % frame = im2gray(frame);
 % 
 % localisationParam.psfTemplates = {psfTemplate1, psfTemplate2, psfTemplate3};
 % [localisedBubbleCoords] = crossCorrelationLocal(frame, localisationParam);
@@ -76,13 +82,14 @@ end
 % hold off
 % title('Frame 1');
 
-% %% Reconstruct video
+%% Reconstruct video
 % localisedvid = VideoWriter("stable2");
 % localisedvid.FrameRate = bubbleVid.FrameRate;
 % open(localisedvid);
 % fig = figure('Color','k');
 % ax  = axes(fig);
 % ax.Position = [0 0 1 1]; 
+% numFrames = 50;
 % localisedBubbleCoords = cell(numFrames, 1);
 % 
 % for n = 1:numFrames

@@ -1,7 +1,7 @@
 function [beamformedImage, srImg, velImg] = ULMPipeline (rawSig, bubbleVid, ...
     constantsParam, beamformParam, svdParam, motionCorrectionParam, localisationParam, ...
     trackingParam, velocityParam)
-    % numFrames = 21;
+    
     numFrames = bubbleVid.NumFrames;
     frameRate = constantsParam.frameRate;  % Hz 
     firstFrame = readFrame (bubbleVid);
@@ -77,8 +77,8 @@ addpath(fullfile(rootDir, 'Tracking'));
 
 %% ULM constants
 constantsParam = struct();
-% constantsParam.pixelSize = 3.3879*1e-5; % m % Simulation
-constantsParam.pixelSize = 3.0800e-05; % m % Phantom
+constantsParam.pixelSize = 3.3879*1e-5; % m % Simulation
+% constantsParam.pixelSize = 3.0800e-05; % m % Phantom
 % constantsParam.frameRate = 400; % Hz, Simulation
 constantsParam.frameRate = 40; % Phantom
 
@@ -142,8 +142,8 @@ velocityParam.method = 'Velocity';
 load("RcvData.mat");
 rawSig = RcvData;
 % bubbleVid = VideoReader('simulation.mp4');
-% bubbleVid = VideoReader('static_background_clutter_filterd.mp4');
-bubbleVid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
+bubbleVid = VideoReader('static_background_clutter_filterd.mp4');
+% bubbleVid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
 [bfImageDB, srImg, velImg] = ULMPipeline (rawSig, bubbleVid, ...
     constantsParam, beamformParam, svdParam, motionCorrectionParam, ...
     localisationParam, trackingParam, velocityParam);
@@ -153,7 +153,8 @@ bubbleVid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
 
 pixelSize = constantsParam.pixelSize;
 
-validMask = velImg.validMask;
+densityMask = srImg > max(srImg(:)) * 1e-2;
+validMask = velImg.validMask & densityMask;
 
 %% ============================================================
 % 1. PHYSICAL COORDINATE SYSTEM
@@ -179,7 +180,7 @@ colormap(gca, hot);
 
 hold on;
 
-barLength_mm = 10;
+barLength_mm = 1;
 
 xMin_mm = min(xAxis_mm);
 xMax_mm = max(xAxis_mm);
@@ -190,7 +191,6 @@ x0 = xMin_mm + 0.05 * (xMax_mm - xMin_mm);
 y0 = zMax_mm - 0.05 * (zMax_mm - zMin_mm);
 
 plot([x0, x0 + barLength_mm], [y0, y0], 'w', 'LineWidth', 3);
-plot([x0, x0], [y0, y0 - barLength_mm], 'w', 'LineWidth', 3);
 
 hold off;
 
@@ -202,6 +202,7 @@ figure;
 
 vx_mm = velImg.vx * dx * 1e3;
 vz_mm = velImg.vy * dz * 1e3;
+
 
 speed = hypot(vx_mm, vz_mm);
 
@@ -259,3 +260,8 @@ axis image off;
 set(h, 'AlphaData', double(r <= 1));
 
 
+avgSpeed = mean(speed(validMask));
+
+fprintf('Average speed: %.2f mm/s\n', avgSpeed);
+fprintf('Max speed: %.2f mm/s\n', max(speed(validMask)));
+fprintf('Median speed: %.2f mm/s\n', median(speed(validMask)));
