@@ -77,10 +77,10 @@ addpath(fullfile(rootDir, 'Tracking'));
 
 %% ULM constants
 constantsParam = struct();
-% constantsParam.pixelSize = 3.3879*1e-5; % m % Simulation
-constantsParam.pixelSize = 3.0800e-05; % m % Phantom
-% constantsParam.frameRate = 400; % Hz, Simulation
-constantsParam.frameRate = 40; % Phantom
+constantsParam.pixelSize = 3.3879*1e-5; % m % Simulation
+% constantsParam.pixelSize = 3.0800e-05; % m % Phantom
+constantsParam.frameRate = 400; % Hz, Simulation
+% constantsParam.frameRate = 40; % Phantom
 
 %% Beamforming parameters: Transducer parameters   
 beamformParam = struct();
@@ -141,9 +141,9 @@ velocityParam.method = 'Velocity';
 %% Run the pipeline
 load("RcvData.mat");
 rawSig = RcvData;
-% bubbleVid = VideoReader('simulation.mp4');
+bubbleVid = VideoReader('simulation.mp4');
 % bubbleVid = VideoReader('static_background_clutter_filterd.mp4');
-bubbleVid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
+% bubbleVid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
 [bfImageDB, srImg, velImg] = ULMPipeline (rawSig, bubbleVid, ...
     constantsParam, beamformParam, svdParam, motionCorrectionParam, ...
     localisationParam, trackingParam, velocityParam);

@@ -1,5 +1,5 @@
-% function [localisedBubbleCoords] = crossCorrelation(frame, localisationParam)
-function [localisedBubbleCoords, boundingBoxes] = crossCorrelationLocal(frame, localisationParam)
+function [localisedBubbleCoords] = crossCorrelation(frame, localisationParam)
+% function [localisedBubbleCoords] = crossCorrelationLocal(frame, localisationParam)
     [height, width, ~] = size(frame);
     % viableYTop = 570; 
     % viableYBottom = 850;
@@ -52,96 +52,63 @@ function [localisedBubbleCoords, boundingBoxes] = crossCorrelationLocal(frame, l
             % coords(:,1) = coords(:,1) + roiXMin - 1;
             coords(:,1) = coords(:,1); % simulation
             allCoords{n} = coords;
-
-            boxes = cat(1, stats.BoundingBox);
-            boxes(:,1) = boxes(:,1);
-            boxes(:,2) = boxes(:,2) + roiYMin - 1;
-        
-            allBoxes{n} = boxes;
         end
     end
     localisedBubbleCoords = vertcat(allCoords{:});
-    boundingBoxes = vertcat(allBoxes{:});
     
 end
 
 % Uncomment to run code locally
 % bubbleVid = VideoReader('simulation.mp4');
-bubbleVid = VideoReader('static_background_clutter_filterd.mp4');
+% bubbleVid = VideoReader('static_background_clutter_filterd.mp4');
 % bubbleVid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
-
-numFrames = bubbleVid.NumFrames;
-frame = read(bubbleVid, 91);
-frame = im2gray(frame);
-
-localisationParam.psfTemplates = {psfTemplate1, psfTemplate2, psfTemplate3};
-[localisedBubbleCoords, boundingBoxes] = crossCorrelationLocal(frame, localisationParam);
-
+% 
+% numFrames = bubbleVid.NumFrames;
+% frame = read(bubbleVid, 91);
+% frame = im2gray(frame);
+% 
+% localisationParam.psfTemplates = {psfTemplate1, psfTemplate2, psfTemplate3};
+% [localisedBubbleCoords] = crossCorrelationLocal(frame, localisationParam);
+% 
 % View singular frame
 % threshold = prctile(frame(:), 90); % Adding thresholding to function
 % frame(frame <= threshold) = 0;
-figure;
-imshow(frame);
-impixelinfo;
-hold on
-plot(localisedBubbleCoords(:,1),localisedBubbleCoords(:,2),'.', 'MarkerSize', 10, 'Color', 'b');
-hold off
-
+% figure;
+% imshow(frame);
+% impixelinfo;
+% hold on
+% plot(localisedBubbleCoords(:,1),localisedBubbleCoords(:,2),'.', 'MarkerSize', 10, 'Color', 'b');
+% hold off
+% 
 % Reconstruct video
-localisedvid = VideoWriter("localised");
-localisedvid.FrameRate = bubbleVid.FrameRate;
-open(localisedvid);
-fig = figure('Color','k');
-ax  = axes(fig);
-ax.Position = [0 0 1 1]; 
-numFrames = 200;
-localisedBubbleCoords = cell(numFrames, 1);
-
-for n = 1:numFrames
-    frame = read(bubbleVid, n);
-    frame = im2gray(frame);
-    [localisedBubbleCoords{n}] = crossCorrelationLocal(frame, localisationParam);
-
-    imshow(frame, 'Parent', ax); hold(ax, 'on');
-    plot(ax, localisedBubbleCoords{n}(:,1), localisedBubbleCoords{n}(:,2), ...
-        'b*', 'MarkerSize', 10);
-    hold(ax, 'off');
-
-    F = getframe(ax);          % capture AXES only, not figure
-    writeVideo(localisedvid, F);
-end
-
-
-close(localisedvid);
-
-
-figure;
-imshow(frame);
-hold on
-
-% for i = 1:size(boundingBoxes, 1)
+% localisedvid = VideoWriter("localised");
+% localisedvid.FrameRate = bubbleVid.FrameRate;
+% open(localisedvid);
+% fig = figure('Color','k');
+% ax  = axes(fig);
+% ax.Position = [0 0 1 1]; 
+% numFrames = 200;
+% localisedBubbleCoords = cell(numFrames, 1);
 % 
-%     % Original box
-%     x = boundingBoxes(i,1);
-%     y = boundingBoxes(i,2);
-%     w = boundingBoxes(i,3);
-%     h = boundingBoxes(i,4);
+% for n = 1:numFrames
+%     frame = read(bubbleVid, n);
+%     frame = im2gray(frame);
+%     [localisedBubbleCoords{n}] = crossCorrelationLocal(frame, localisationParam);
 % 
-%     % Scale factors
-%     wScale = 5;
-%     hScale = 2;
+%     imshow(frame, 'Parent', ax); hold(ax, 'on');
+%     plot(ax, localisedBubbleCoords{n}(:,1), localisedBubbleCoords{n}(:,2), ...
+%         'b*', 'MarkerSize', 10);
+%     hold(ax, 'off');
 % 
-%     % New dimensions
-%     newW = w * wScale;
-%     newH = h * hScale;
-% 
-%     % Shift top-left corner to preserve centre
-%     newX = x - (newW - w)/2;
-%     newY = y - (newH - h)/2;
-% 
-%     rectangle('Position', [newX, newY, newW, newH], ...
-%               'EdgeColor', '#5BBFCF', ...
-%               'LineWidth', 1);
+%     F = getframe(ax);          % capture AXES only, not figure
+%     writeVideo(localisedvid, F);
 % end
 % 
-% hold off
+% 
+% close(localisedvid);
+% 
+% 
+% figure;
+% imshow(frame);
+% hold on
+% 
