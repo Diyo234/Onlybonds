@@ -17,7 +17,10 @@ function frameOut = thresholding(frameIn, viableYTop, viableYBottom)
 
     threshold = prctile(roi(:), 80);
 
+
     roi(roi <= threshold) = 0;
+
+    
 
     frameOut = zeros(size(frameIn), 'like', frameIn);
     frameOut(viableYTop:viableYBottom, :) = roi;
@@ -28,53 +31,39 @@ end
 % must include: simvid, refFrame1, refFrame2, at least 1 bubble, psf 
 % dimensions for each bubble
 
-%% CEUS Stable1
-% Ensure to add missing templates - only 1 is correctly defined
-simvid = VideoReader('Phantom Videos/CEUS_Stable1.mp4');
-numframes = simvid.NumFrames;
-viableYTop = 570; 
-viableYBottom = 850;
-refFrame1 = read(simvid, 1);
-refFrame1 = thresholding(refFrame1, viableYTop, viableYBottom);
-refFrame2 = read(simvid, 200);
-refFrame2 = thresholding(refFrame2, viableYTop, viableYBottom);
-refFrame3 = read(simvid, 20);
-refFrame3 = thresholding(refFrame3, viableYTop, viableYBottom);
-
-displayFrame = refFrame2; % Pick the display frame
+%% Clutter filter video
+simvid = VideoReader('static_background_clutter_filterd.mp4');
+refFrame1 = read(simvid, 70);
+refFrame2 = read(simvid, 140);
 figure;
-imshow(displayFrame);
+imshow(refFrame1);
 impixelinfo;
-zoom on;
-title ('Display PSF regions')
 hold on
 
-
 % Bubble 1
-bubble1 = [362,605]; % refFrame3
+bubble1 = [113,44]; % Frame 70
 plot(bubble1(1), bubble1(2), 'b*');
-psfWidth1 = 60;
-psfHeight1 = 18;
-plot ([bubble1(1) - psfWidth1/2 ,bubble1(1) + psfWidth1/2], [bubble1(2), bubble1(2)], 'r-'); 
-plot ([bubble1(1), bubble1(1)], [ bubble1(2) + psfHeight1/2,bubble1(2) - psfHeight1/2], 'g-');
+plot ([bubble1(1) - 35 ,bubble1(1) + 35], [bubble1(2), bubble1(2)], 'r-'); % PSF width = 70
+plot ([bubble1(1), bubble1(1)], [ bubble1(2) + 6,bubble1(2) - 6], 'g-'); % height = 12
+psfWidth1 = 70;
+psfHeight1 = 12;
 
 % Bubble 2
-bubble2 = [662,604]; % refFrame2
+bubble2 = [94,151]; % Frame 70
 plot(bubble2(1), bubble2(2), 'b*');
-psfWidth2 = 70;
-psfHeight2 = 24;
-plot ([bubble2(1) - psfWidth2/2 ,bubble2(1) + psfWidth2/2], [bubble2(2), bubble2(2)], 'r-');%
-plot ([bubble2(1), bubble2(1)], [ bubble2(2) + psfHeight2/2,bubble2(2) - psfHeight2/2], 'g-'); 
-
-
+% Bubble 2, frame 140
+plot ([bubble2(1) - 34 ,bubble2(1) + 34], [bubble2(2), bubble2(2)], 'r-'); % PSF width = 64
+plot ([bubble2(1), bubble2(1)], [ bubble2(2) + 6,bubble2(2) - 6], 'g-'); % height = 12
+psfWidth2 = 64;
+psfHeight2 = 12;
 
 % Bubble 3
-bubble3 = [1164,749]; % Frame 810, refFrame1
+bubble3 = [82,244]; % Frame 70
 plot(bubble3(1), bubble3(2), 'b*');
-psfWidth3 = 26;
-psfHeight3 = 14;
-plot ([bubble3(1) - psfWidth3/2 ,bubble3(1) + psfWidth3/2], [bubble3(2), bubble3(2)], 'r-'); % PSF width = 70
-plot ([bubble3(1), bubble3(1)], [ bubble3(2) + psfHeight3/2,bubble3(2) - psfHeight3/2], 'g-'); % height = 14
+plot ([bubble3(1) - 34 ,bubble3(1) + 34], [bubble3(2), bubble3(2)], 'r-'); % PSF width = 68
+plot ([bubble3(1), bubble3(1)], [ bubble3(2) + 6,bubble3(2) - 5], 'g-'); % height = 11
+psfWidth3 = 68;
+psfHeight3 = 11;
 %% This function determines the psfTemplate based on psf dimensions
 function [psfTemplate, box] = findPsfTemplate (frame, psfWidth, psfHeight, bubbleX, bubbleY)
     % patchWidth = psfWidth*1.5;
@@ -119,8 +108,8 @@ function [psfTemplate, box] = findPsfTemplate (frame, psfWidth, psfHeight, bubbl
 end
 
 % Run the function above, entering psf dimensions and bubble centroids
-% [psfTemplate1, box1] = findPsfTemplate (refFrame1, psfWidth1, psfHeight1, bubble1(1), bubble1(2));
-% [psfTemplate2, box2] = findPsfTemplate (refFrame2, psfWidth2, psfHeight2, bubble2(1), bubble2(2));
+[psfTemplate1, box1] = findPsfTemplate (refFrame1, psfWidth1, psfHeight1, bubble1(1), bubble1(2));
+[psfTemplate2, box2] = findPsfTemplate (refFrame2, psfWidth2, psfHeight2, bubble2(1), bubble2(2));
 [psfTemplate3, box3] = findPsfTemplate (refFrame1, psfWidth3, psfHeight3, bubble3(1), bubble3(2));
 
 % rectangle('Position', box1, 'EdgeColor', 'g', 'LineWidth', 1);
@@ -142,22 +131,9 @@ hold off
 % imshow(refFrame)
 % impixelinfo;
 % title('Find Bubble Centres')
+figure;
+imshow(psfTemplate1);
 
 
 
 
-
-
-
-
-%lsqcurvefit
-
-
-
-%% Discretation calculations, ignore for the most part
-% ≥0.5λ in the lateral direction , ≥ 0.25λ in the axial direction.
-fc = 2.0*1e6;
-c = 1540;
-lambda = c /fc; % λ = c / f
-pixelSize = 3.3879*1e-5;
-lambda/4 > pixelSize; % This returns true, so discretation is enough
